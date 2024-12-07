@@ -1,6 +1,6 @@
 
 
--- ------------------------------------- This is a SQL data cleaning and exploratory analysis project on global compay layoff data from 2020 March to 2023 March-----------------------------------
+-- ------------------------------------- This is a SQL data cleaning and exploratory analysis project on global company layoff data from 2020 March to 2023 March-----------------------------------
 
 -- creating a staging table with the same columns as the original to work on
 CREATE TABLE `staging` (
@@ -28,7 +28,7 @@ partition by
 company, location, industry, total_laid_off, percentage_laid_off, `date`, stage, country, funds_raised_millions) as row_num 
 from layoffs;
 
--- Remove duplciate records
+-- Remove duplicate records
 Delete
 from staging
 where row_num > 1;
@@ -36,9 +36,9 @@ where row_num > 1;
 -- -------------------------------------------------------------------------------------- Standardizing data --------------------------------------------------------------------------------------------
 -- Using wildcards to identify inconsistent records and updating them
 -- converting 'date' formats and data types
--- standardizing all blank/null values 
+-- Standardizing all blank/null values 
 -- Using self-join to populate null values 
--- Removing irrelevent rows and columns
+-- Removing irrelevant rows and columns
 
 -- Standardizing Company Names
 Update staging
@@ -81,7 +81,7 @@ set table1.industry = table2.industry
 where table1.industry is null
 and table2.industry is not null;
 
--- Remove records where both total_laid_off and percentage_laid_off are both null, because they will not contribute to any meaningful insights
+-- Remove records where both total_laid_off and percentage_laid_off are both null because they will not contribute to any meaningful insights
 Delete 
 from staging
 where total_laid_off is null 
@@ -92,9 +92,9 @@ percentage_laid_off is null;
 alter table staging
 drop column row_num;
 
--- -------------------------------------------------------------------------------------- Exploratory Data Abalysis --------------------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------- Exploratory Data Analysis --------------------------------------------------------------------------------------
 
--- Max lay offs and max % lay offs
+-- Max layoffs and max % layoffs
 select max(total_laid_off), max(percentage_laid_off)
 from staging;
 
@@ -102,19 +102,19 @@ from staging;
 select min(`date`), max(`date`)
 from staging;
 
--- Sorting total lay offs per year in descending order
+-- Sorting total layoffs per year in descending order
 select year(`date`), sum(total_laid_off)
 from staging
 group by year(`date`)
 order by year(`date`) desc;
 
--- Sorting total lay offs per business stage
+-- Sorting total layoffs per business stage
 select stage, sum(total_laid_off)
 from staging
 group by stage
 order by sum(total_laid_off) desc;
 
--- Ovewview of data where percentage lay off is 100% by funds raised
+-- Overview of data where percentage layoff is 100% by funds raised
 select *
 from staging
 where percentage_laid_off = 1
@@ -126,7 +126,7 @@ from staging
 where percentage_laid_off = 1
 order by total_laid_off desc;
 
--- Industries with the most number of companies with 100% lay offs
+-- Industries with the most number of companies with 100% layoffs
 -- * Retail, Food, and Finance were top 3
 select industry, count(distinct company)
 from staging
@@ -134,15 +134,15 @@ where percentage_laid_off = 1
 group by industry
 order by count(company) desc;
 
--- Companies with the most lay offs  
+-- Companies with the most layoffs  
 -- * Amazon, Google, Meta, Salesforce, Microsoft and Philips has layoffs >= 10,000
 select company, sum(total_laid_off)
 from staging
 group by company
 order by sum(total_laid_off) desc;
 
--- Industries with the most lay offs and the number of recorded companies
--- * Consumer, Retail, and Transportation has the most total layoffs.
+-- Industries with the most layoffs and the number of recorded companies
+-- * Consumer, Retail, and Transportation had the most total layoffs.
 -- * Finance ranked 4th but had 2x the number of comapnies on record.
 select industry, sum(total_laid_off), count(distinct company)
 from staging
@@ -150,20 +150,20 @@ group by industry
 order by sum(total_laid_off) desc;
 
 -- Industries with the highest % layoffs
--- * Aerospace had the highest % layoffs of 57% followed by Education 36%.
+-- * Aerospace had the highest % layoffs of 57% followed by Education at 36%.
 select round(avg(percentage_laid_off),2) as avg_perc, industry
 from staging
 group by industry
 order by avg_perc desc;
 
--- Countries with the most lay offs and recorded companies
+-- Countries with the most layoffs and recorded companies
 -- * almost 90% of records were companies from the U.S 
 select country, sum(total_laid_off), count( distinct company)
 from staging
 group by country
 order by sum(total_laid_off) desc;
 
--- Ranking the top 5 companies with the most total lay offs for each year (2020-2023)
+-- Ranking the top 5 companies with the most total layoffs for each year (2020-2023)
 with ranked_companies as (
     select 
 	company,
@@ -212,4 +212,3 @@ order by `year`, `month`) as monthly_laid_off;
 
 select *
 from staging
-where country = 'Canada'
