@@ -1,6 +1,6 @@
 
 
--- ------------------------------------- This is a SQL data cleaning and exploratory analysis project on global company layoff data from 2020 March to 2023 March-----------------------------------
+-- ----------------------- This is a SQL data cleaning and exploratory analysis project on global company layoff data from 2020 March to 2023 March-----------------------------------
 
 -- creating a staging table with the same columns as the original to work on
 CREATE TABLE `staging` (
@@ -16,7 +16,7 @@ CREATE TABLE `staging` (
   `row_num` int
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- -------------------------------------------------------------------------------------- Removing duplicates --------------------------------------------------------------------------------------
+-- -------------------------------------------------------------------- Removing Duplicates --------------------------------------------------------------------------------------
 -- Insert records from the original into the staging table
 -- &
 -- Adding a column using a window function to rank each unique record
@@ -33,7 +33,7 @@ Delete
 from staging
 where row_num > 1;
 
--- -------------------------------------------------------------------------------------- Standardizing data --------------------------------------------------------------------------------------------
+-- -------------------------------------------------------------------- Standardizing data --------------------------------------------------------------------------------------------
 -- Using wildcards to identify inconsistent records and updating them
 -- converting 'date' formats and data types
 -- Standardizing all blank/null values 
@@ -73,7 +73,7 @@ Update staging
 set industry = null
 where industry = '';
 
--- self join to populate null industries if the comapny is the same
+-- self join to populate null industries if the company is the same
 update staging table1
 join staging table2
 on table1.company = table2.company
@@ -81,7 +81,7 @@ set table1.industry = table2.industry
 where table1.industry is null
 and table2.industry is not null;
 
--- Remove records where both total_laid_off and percentage_laid_off are both null because they will not contribute to any meaningful insights
+-- Remove records where both total_laid_off and percentage_laid_off are null because they will not contribute to any meaningful insights
 Delete 
 from staging
 where total_laid_off is null 
@@ -92,7 +92,7 @@ percentage_laid_off is null;
 alter table staging
 drop column row_num;
 
--- -------------------------------------------------------------------------------------- Exploratory Data Analysis --------------------------------------------------------------------------------------
+-- -------------------------------------------------------------------- Exploratory Data Analysis --------------------------------------------------------------------------------------
 
 -- Max layoffs and max % layoffs
 select max(total_laid_off), max(percentage_laid_off)
@@ -165,14 +165,11 @@ order by sum(total_laid_off) desc;
 
 -- Ranking the top 5 companies with the most total layoffs for each year (2020-2023)
 with ranked_companies as (
-    select 
-	company,
-	year(`date`) as years,
-	SUM(total_laid_off) as laid_off_total,
-	dense_rank() over (partition by year(`date`) order by SUM(total_laid_off) desc) as ranking
-    from staging
-	where year(`date`) is not null
-	group by company, years
+select company, year(`date`) as years, SUM(total_laid_off) as laid_off_total,
+dense_rank() over (partition by year(`date`) order by SUM(total_laid_off) desc) as ranking
+from staging
+where year(`date`) is not null
+group by company, years
 
 )
 select *
@@ -187,7 +184,7 @@ from staging
 group by country
 order by count(distinct company) desc;
 
--- Rolling total of monthly lay offs using a window function where the date is valid
+-- Rolling total of monthly layoffs using a window function where the date is valid
 with monthly_laid_off as 
 (
 select year(`date`) as `year`, month(`date`) as `month`, sum(total_laid_off) as laid_off
