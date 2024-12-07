@@ -120,7 +120,7 @@ from staging
 where percentage_laid_off = 1
 order by funds_raised_millions desc;
 
--- Overview of data where percentage lay off is 100% by number of lay off
+-- Overview of data where percentage lay off is 100% by number of layoff
 select *
 from staging
 where percentage_laid_off = 1
